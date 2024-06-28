@@ -1,6 +1,9 @@
+import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.serialization)
 }
 
 kotlin {
@@ -11,24 +14,34 @@ kotlin {
             }
         }
     }
-    
+    val xcFrameworkName = "Redux"
+    val xcf = XCFramework(xcFrameworkName)
+
     listOf(
         iosX64(),
         iosArm64(),
         iosSimulatorArm64()
     ).forEach {
         it.binaries.framework {
-            baseName = "shared"
+            baseName = xcFrameworkName
+            binaryOption("bundleId", "ch.smoca.${xcFrameworkName}")
+            xcf.add(this)
             isStatic = true
         }
     }
 
     sourceSets {
         commonMain.dependencies {
-            //put your multiplatform dependencies here
+            implementation(libs.smoca.redux)
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.serialization.core)
+            implementation(libs.ktor.client.serialization.json)
         }
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
+        androidMain.dependencies {
+            implementation(libs.ktor.client.okhttp)
+        }
+        iosMain.dependencies {
+            implementation(libs.ktor.client.darwin)
         }
     }
 }
